@@ -1,0 +1,14 @@
+{
+  "elements": [],
+  "stats": {
+    "total_elements": 0,
+    "elements_by_type": {},
+    "files_scanned": 0,
+    "scanned_files": []
+  },
+  "metadata": {
+    "repository": "compiler",
+    "commit": "d482f354906dd93a1794559abf05ff34e61918f2",
+    "timestamp": "2025-04-07T17:34:09+05:30"
+  }
+}
