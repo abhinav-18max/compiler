@@ -1,0 +1,79 @@
+name: Code Change Analysis
+
+on:
+  push:
+    branches: [ main, master, dev ]  
+
+# Cancel any in-progress job or runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+    
+permissions:
+  contents: write
+  
+jobs:
+  analyze-code-changes:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install GitPython tree_sitter
+        # Install language parsers for tree-sitter
+        pip install tree-sitter-python tree-sitter-javascript tree-sitter-typescript tree-sitter-java tree-sitter-go tree-sitter-rust
+
+    - name: Analyze code changes
+      run: |
+        mkdir -p .docai
+        python .github/scripts/analyze_code_changes.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # - name: Debug .docai contents
+    #   run: |
+    #     ls -la .docai/ || echo ".docai/ is empty or missing"
+    #     cat .docai/* || echo "No files to display"
+
+    - name: Commit and push changes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO_NAME: ${{ github.repository }}  
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Stash any changes
+        git stash push -u
+        
+        # Pull with rebase
+        git pull origin ${GITHUB_REF#refs/heads/} --rebase
+        
+        # Pop the stashed changes
+        git stash pop
+        
+        # Add and commit
+        git add .docai
+        if ! git diff-index --quiet HEAD --; then
+          git commit -m "Update code elements database with current repository state"
+          git push origin HEAD:${GITHUB_REF#refs/heads/}
+        else
+          echo "No changes to commit."
+        fi
+          
+    - name: Store analysis results
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-analysis-${{ github.sha }}
+        path: .docai/
