@@ -1,0 +1,23 @@
+{
+    "excluded_paths": [
+        ".git/*",
+        ".github/*",
+        "node_modules/*",
+        "venv/*",
+        ".env/*",
+        "__pycache__/*",
+        "*.pyc",
+        "*.pyo",
+        "*.pyd",
+        "*.so",
+        "*.dylib",
+        "*.dll",
+        "*.class",
+        "*.log",
+        "*.cache",
+        "build/*",
+        "dist/*",
+        ".next/*",
+        ".docai/*"
+    ]
+} 
